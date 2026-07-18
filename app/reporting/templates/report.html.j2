@@ -1,0 +1,215 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>{{ report_title }}</title>
+<style>
+  @page { size: Letter; margin: 0.6in 0.55in 0.7in 0.55in; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: #1f2430;
+    margin: 0;
+    font-size: 11pt;
+    line-height: 1.45;
+  }
+  .cover {
+    height: 9.5in;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .cover h1 {
+    font-size: 30pt;
+    margin: 0 0 6px 0;
+    color: #16324f;
+  }
+  .cover .subtitle { color: #5b6675; font-size: 12pt; margin-bottom: 34px; }
+  .cover .meta-line { color: #5b6675; font-size: 10pt; margin-top: 4px; }
+  .toc { margin-top: 30px; }
+  .toc-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #e3e7ee;
+    font-size: 11pt;
+  }
+  .toc-row a { color: #16324f; text-decoration: none; font-weight: 600; }
+  .toc-row .toc-price { color: #1c7c4f; font-weight: 700; }
+
+  .property {
+    page-break-before: always;
+    padding-top: 4px;
+  }
+  .prop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 3px solid #16324f;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+  }
+  .prop-header .idx { color: #9aa5b1; font-size: 10pt; font-weight: 700; letter-spacing: 0.08em; }
+  .prop-header h2 { margin: 2px 0 0 0; font-size: 18pt; color: #16324f; }
+  .prop-header .price { font-size: 20pt; font-weight: 800; color: #1c7c4f; text-align: right; white-space: nowrap; }
+  .prop-header .status { display:block; font-size: 9pt; color: #9aa5b1; text-align:right; font-weight:600; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .stat-pills { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  .pill {
+    background: #f2f5fa;
+    border: 1px solid #e3e7ee;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 9.5pt;
+    color: #3a4453;
+  }
+  .pill b { color: #16324f; }
+
+  .hero-photo {
+    width: 100%;
+    max-height: 3.6in;
+    object-fit: cover;
+    border-radius: 6px;
+    margin-bottom: 14px;
+    display: block;
+  }
+
+  .section-label {
+    font-size: 10.5pt;
+    font-weight: 700;
+    color: #16324f;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 16px 0 8px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #e3e7ee;
+  }
+  .photo-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .photo-grid figure { margin: 0; }
+  .photo-grid img {
+    width: 100%;
+    height: 1.55in;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid #e3e7ee;
+    display: block;
+  }
+  .photo-grid figcaption {
+    font-size: 7.5pt;
+    color: #8a93a2;
+    margin-top: 2px;
+  }
+
+  .description {
+    margin-top: 14px;
+    font-size: 10pt;
+    color: #333c48;
+  }
+
+  .facts-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 14px;
+    font-size: 9.5pt;
+  }
+  .facts-table td { padding: 5px 8px; border-bottom: 1px solid #eef1f5; }
+  .facts-table td.label { color: #8a93a2; width: 35%; }
+  .facts-table td.value { color: #1f2430; font-weight: 600; }
+
+  .listing-link {
+    margin-top: 14px;
+    font-size: 9pt;
+    color: #5b6675;
+    word-break: break-all;
+  }
+  .no-photos-note { color: #9aa5b1; font-style: italic; font-size: 9.5pt; }
+</style>
+</head>
+<body>
+
+<section class="cover">
+  <h1>{{ report_title }}</h1>
+  <div class="subtitle">Home search report &middot; {{ generated_at }}</div>
+  <div class="meta-line">{{ properties|length }} properties &middot; search criteria: {{ search_summary }}</div>
+
+  <div class="toc">
+    {% for p in properties %}
+    <div class="toc-row">
+      <a href="#property-{{ p.id }}">{{ loop.index }}. {{ p.address or "Address unavailable" }}{% if p.city %}, {{ p.city }}{% endif %}{% if p.state %}, {{ p.state }}{% endif %}</a>
+      <span class="toc-price">{{ p.price or "Price N/A" }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+{% for p in properties %}
+<section class="property" id="property-{{ p.id }}">
+  <div class="prop-header">
+    <div>
+      <span class="idx">PROPERTY {{ loop.index }} OF {{ properties|length }}</span>
+      <h2>{{ p.address or "Address unavailable" }}</h2>
+      <div style="color:#5b6675; font-size:10.5pt;">
+        {{ p.city or "" }}{% if p.city and p.state %}, {% endif %}{{ p.state or "" }} {{ p.zipcode or "" }}
+      </div>
+    </div>
+    <div>
+      <span class="price">{{ p.price or "Price N/A" }}</span>
+      <span class="status">{{ p.status_text or "" }}</span>
+    </div>
+  </div>
+
+  <div class="stat-pills">
+    {% if p.beds %}<div class="pill"><b>{{ p.beds|round_num }}</b> beds</div>{% endif %}
+    {% if p.baths %}<div class="pill"><b>{{ p.baths|round_num }}</b> baths</div>{% endif %}
+    {% if p.sqft %}<div class="pill"><b>{{ "{:,}".format(p.sqft) }}</b> sqft</div>{% endif %}
+    {% if p.lot_size %}<div class="pill">Lot: <b>{{ p.lot_size }}</b></div>{% endif %}
+    {% if p.year_built %}<div class="pill">Built <b>{{ p.year_built }}</b></div>{% endif %}
+    {% if p.home_type %}<div class="pill"><b>{{ p.home_type }}</b></div>{% endif %}
+  </div>
+
+  {% if p.hero_photo_uri %}
+  <img class="hero-photo" src="{{ p.hero_photo_uri }}">
+  {% endif %}
+
+  {% for category, photos in p.photos_by_category %}
+    <div class="section-label">{{ category }}</div>
+    <div class="photo-grid">
+      {% for photo in photos %}
+      <figure>
+        <img src="{{ photo.uri }}">
+        {% if photo.caption %}<figcaption>{{ photo.caption }}</figcaption>{% endif %}
+      </figure>
+      {% endfor %}
+    </div>
+  {% endfor %}
+  {% if not p.hero_photo_uri and not p.photos_by_category %}
+  <div class="no-photos-note">No photos were available for this listing.</div>
+  {% endif %}
+
+  {% if p.description %}
+  <div class="section-label">Description</div>
+  <div class="description">{{ p.description }}</div>
+  {% endif %}
+
+  <div class="section-label">Details</div>
+  <table class="facts-table">
+    <tr><td class="label">Home type</td><td class="value">{{ p.home_type or "—" }}</td></tr>
+    <tr><td class="label">Year built</td><td class="value">{{ p.year_built or "—" }}</td></tr>
+    <tr><td class="label">Lot size</td><td class="value">{{ p.lot_size or "—" }}</td></tr>
+    <tr><td class="label">Status</td><td class="value">{{ p.status_text or "—" }}</td></tr>
+    <tr><td class="label">Listing agent</td><td class="value">{{ p.agent_name or "—" }}{% if p.agent_phone %} &middot; {{ p.agent_phone }}{% endif %}</td></tr>
+  </table>
+
+  {% if p.listing_url %}
+  <div class="listing-link">Original listing: {{ p.listing_url }}</div>
+  {% endif %}
+</section>
+{% endfor %}
+
+</body>
+</html>

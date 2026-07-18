@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home Search Reports</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <h1>Home Search Reports</h1>
+    <p class="tagline">Search Zillow, review results, generate a clean PDF report.</p>
+  </header>
+
+  <main>
+    <section class="card" id="search-card">
+      <h2>1. Search</h2>
+      <p class="hint">
+        For the most reliable results, set your filters (price, beds/baths, home type, etc.)
+        directly on <a href="https://www.zillow.com" target="_blank" rel="noopener">zillow.com</a>,
+        then paste the search results URL below. Or do a quick location-only search.
+      </p>
+
+      <label for="zillow-url">Zillow search URL (recommended)</label>
+      <input type="text" id="zillow-url" placeholder="https://www.zillow.com/homes/for_sale/...">
+
+      <div class="or-divider">or</div>
+
+      <label for="location">Quick location search (city, state or zip)</label>
+      <input type="text" id="location" placeholder="Austin, TX">
+
+      <label for="max-results">Max listings to fetch</label>
+      <input type="number" id="max-results" value="15" min="1" max="60">
+
+      <button id="search-btn">Search Zillow</button>
+      <div id="search-status" class="status-line"></div>
+    </section>
+
+    <section class="card" id="results-card" hidden>
+      <h2>2. Review results</h2>
+      <p class="hint">Uncheck any properties you don't want included in the report.</p>
+      <div id="results-grid" class="results-grid"></div>
+    </section>
+
+    <section class="card" id="report-card" hidden>
+      <h2>3. Generate report</h2>
+      <button id="report-btn">Generate combined PDF report</button>
+      <div id="report-status" class="status-line"></div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
