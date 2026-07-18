@@ -1,4 +1,4 @@
-let currentSearchId = null;
+let searchIds = [];
 let pollTimer = null;
 
 const $ = (id) => document.getElementById(id);
@@ -21,8 +21,6 @@ $("search-btn").addEventListener("click", async () => {
 
   $("search-btn").disabled = true;
   setStatus(statusEl, "Starting search...");
-  $("results-card").hidden = true;
-  $("report-card").hidden = true;
 
   try {
     const resp = await fetch("/api/search", {
@@ -36,19 +34,30 @@ $("search-btn").addEventListener("click", async () => {
       $("search-btn").disabled = false;
       return;
     }
-    currentSearchId = data.search_id;
-    pollStatus();
+    searchIds.push(data.search_id);
+    $("zillow-url").value = "";
+    $("location").value = "";
+    pollStatus(data.search_id);
   } catch (err) {
     setStatus(statusEl, "Could not reach the server: " + err.message, "error");
     $("search-btn").disabled = false;
   }
 });
 
-function pollStatus() {
+$("clear-btn").addEventListener("click", () => {
+  searchIds = [];
+  $("results-grid").innerHTML = "";
+  $("results-card").hidden = true;
+  $("report-card").hidden = true;
+  setStatus($("search-status"), "");
+  setStatus($("report-status"), "");
+});
+
+function pollStatus(searchId) {
   clearInterval(pollTimer);
   const statusEl = $("search-status");
   pollTimer = setInterval(async () => {
-    const resp = await fetch(`/api/search/${currentSearchId}/status`);
+    const resp = await fetch(`/api/search/${searchId}/status`);
     const data = await resp.json();
     setStatus(statusEl, data.progress || data.status);
 
@@ -66,7 +75,8 @@ function pollStatus() {
 }
 
 async function loadProperties() {
-  const resp = await fetch(`/api/search/${currentSearchId}/properties`);
+  const idsParam = searchIds.join(",");
+  const resp = await fetch(`/api/searches/properties?ids=${idsParam}`);
   const data = await resp.json();
   const grid = $("results-grid");
   grid.innerHTML = "";
@@ -116,7 +126,11 @@ $("report-btn").addEventListener("click", async () => {
   setStatus(statusEl, "Building PDF report...");
 
   try {
-    const resp = await fetch(`/api/search/${currentSearchId}/report`, { method: "POST" });
+    const resp = await fetch("/api/report", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ search_ids: searchIds }),
+    });
     const data = await resp.json();
     if (!resp.ok) {
       setStatus(statusEl, data.error || "Report generation failed.", "error");

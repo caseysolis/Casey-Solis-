@@ -24,10 +24,30 @@ notes on Zillow" below for why.
    back to Zillow's own photo ordering (front exterior is virtually always
    photo #1) when no caption is available.
 4. **Review** — a results grid lets you uncheck any properties you don't
-   want in the report.
+   want in the report. Searching multiple towns? Run a search for each —
+   every search you add stacks into the same results grid, so you review
+   and report on all of them together.
 5. **Report** — generates a single polished PDF: a cover page with a
    clickable index, then one section per property with a hero exterior
    photo, key stats, categorized photo grids, description, and details.
+
+## Searching by criteria Zillow doesn't have a checkbox for
+
+Some things people search for — an in-law suite, a specific year-built
+range — don't have a dedicated Zillow filter checkbox. Two ways to handle
+that:
+
+- **Keyword filter**: on zillow.com, open the "More" filters panel and use
+  the **Keywords** box to match listing description text, e.g. `in-law
+  suite, in-law apartment, accessory apartment, guest suite`. Combine with
+  the Home Type / Year Built / Price filters on the same panel, then paste
+  the resulting URL into this app.
+- **Year Built range**: also under "More" filters on zillow.com — e.g. to
+  find newer construction, set the minimum to a few years back.
+- **Multiple towns**: either run one search per town in this app (they'll
+  combine into one report — see above), or draw a single custom boundary
+  covering multiple towns using Zillow's map draw-boundary tool and paste
+  that one URL instead.
 
 ## Important notes on Zillow
 
