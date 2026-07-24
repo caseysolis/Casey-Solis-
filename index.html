@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forensic Economic Loss Calculator</title>
+<style>
+  :root {
+    --navy: #1b2a4a;
+    --navy-light: #2c3f6b;
+    --gold: #a9812c;
+    --gold-light: #c9a24a;
+    --bg: #f4f5f7;
+    --panel: #ffffff;
+    --border: #d7dbe3;
+    --text: #1f2430;
+    --muted: #5c6270;
+    --good: #1c7c4d;
+    --bad: #a3222f;
+    --radius: 8px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.4;
+  }
+  header {
+    background: linear-gradient(135deg, var(--navy), var(--navy-light));
+    color: #fff;
+    padding: 28px 32px;
+  }
+  header h1 {
+    margin: 0 0 4px 0;
+    font-size: 1.6rem;
+    letter-spacing: 0.3px;
+  }
+  header p {
+    margin: 0;
+    color: #c7cee3;
+    font-size: 0.92rem;
+  }
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+  .disclaimer {
+    background: #fff8e6;
+    border: 1px solid #e8d089;
+    color: #6b5410;
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    font-size: 0.85rem;
+    margin-bottom: 22px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin-bottom: 20px;
+  }
+  .panel h2 {
+    font-size: 1.02rem;
+    margin: 0 0 14px 0;
+    color: var(--navy);
+    border-bottom: 2px solid var(--gold-light);
+    padding-bottom: 8px;
+  }
+  .field {
+    margin-bottom: 14px;
+  }
+  .field label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .field .hint {
+    font-weight: 400;
+    font-size: 0.75rem;
+    color: #8a90a0;
+  }
+  input[type="text"], input[type="number"], input[type="date"], select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.92rem;
+    background: #fbfbfd;
+    color: var(--text);
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--navy-light);
+    box-shadow: 0 0 0 3px rgba(44,63,107,0.12);
+  }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .radio-group { display: flex; gap: 16px; flex-wrap: wrap; }
+  .radio-group label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.88rem; font-weight: 500; color: var(--text);
+  }
+  .conditional {
+    border-left: 3px solid var(--gold-light);
+    padding-left: 12px;
+    margin-top: 10px;
+    background: #fafaf6;
+    border-radius: 0 6px 6px 0;
+    padding: 10px 12px;
+  }
+  .hidden { display: none !important; }
+  .btn-row {
+    display: flex;
+    gap: 12px;
+    margin: 8px 0 28px;
+  }
+  button {
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 11px 22px;
+    border-radius: 6px;
+    border: none;
+  }
+  #calcBtn {
+    background: var(--navy);
+    color: #fff;
+  }
+  #calcBtn:hover { background: var(--navy-light); }
+  #printBtn {
+    background: #fff;
+    color: var(--navy);
+    border: 1px solid var(--navy);
+  }
+  #printBtn:hover { background: #eef0f6; }
+  #resetBtn {
+    background: #fff;
+    color: var(--bad);
+    border: 1px solid #e2b3b8;
+  }
+
+  #results { display: none; }
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    border-top: 4px solid var(--gold-light);
+  }
+  .card .label { font-size: 0.78rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; }
+  .card .value { font-size: 1.5rem; font-weight: 700; color: var(--navy); margin-top: 4px; }
+  .card.total { border-top-color: var(--navy); background: #f0f2f8; }
+  .card.total .value { color: var(--navy); font-size: 1.7rem; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    background: var(--panel);
+  }
+  th, td {
+    padding: 7px 9px;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  th { background: var(--navy); color: #fff; position: sticky; top: 0; font-weight: 600; }
+  td:first-child, th:first-child { text-align: left; }
+  tr:nth-child(even) td { background: #f7f8fb; }
+  tr.past-row td { color: var(--muted); }
+  .table-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    max-height: 520px;
+    overflow-y: auto;
+  }
+  .table-title {
+    font-size: 1.02rem;
+    color: var(--navy);
+    margin: 26px 0 10px;
+    font-weight: 700;
+  }
+  .methodology {
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 24px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .methodology summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--navy);
+    font-size: 0.9rem;
+  }
+  .methodology ul { padding-left: 20px; }
+  .badge {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 10px;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .badge.past { background: #e4e7ee; color: var(--muted); }
+  .badge.future { background: #e2ecff; color: var(--navy); }
+
+  @media print {
+    body { background: #fff; }
+    header { background: var(--navy) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .no-print { display: none !important; }
+    .panel { border: 1px solid #999; break-inside: avoid; }
+    #inputForm { display: none !important; }
+    #results { display: block !important; }
+    .table-scroll { max-height: none; overflow: visible; }
+    th { background: var(--navy) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Forensic Economic Loss Calculator</h1>
+  <p>Present-value estimation of lost earning capacity for personal injury, wrongful death, and wrongful termination matters</p>
+</header>
+
+<div class="wrap">
+
+  <div class="disclaimer no-print">
+    <strong>For preliminary estimation only.</strong> This tool applies standard forensic economics conventions
+    (wage growth, fringe benefits, worklife expectancy, personal consumption offset, and present-value discounting).
+    It is not a substitute for a full analysis by a qualified forensic economist, does not incorporate
+    jurisdiction-specific worklife/mortality tables (e.g. Skoog-Ciecka, BLS), and should not be relied upon
+    as the sole basis for a report, settlement, or testimony.
+  </div>
+
+  <form id="inputForm">
+    <div class="grid">
+
+      <div class="panel">
+        <h2>Case Information</h2>
+        <div class="field">
+          <label>Case Name / Reference</label>
+          <input type="text" id="caseName" placeholder="e.g. Doe v. Acme Corp.">
+        </div>
+        <div class="field">
+          <label>Case Type</label>
+          <div class="radio-group">
+            <label><input type="radio" name="caseType" value="PI" checked> Personal Injury</label>
+            <label><input type="radio" name="caseType" value="WD"> Wrongful Death</label>
+            <label><input type="radio" name="caseType" value="WT"> Wrongful Termination</label>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>Date of Loss <span class="hint">(injury / death / termination)</span></label>
+            <input type="date" id="dateOfLoss" required>
+          </div>
+          <div class="field">
+            <label>Evaluation Date <span class="hint">(report / trial date)</span></label>
+            <input type="date" id="evalDate" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Individual Information</h2>
+        <div class="field">
+          <label>Date of Birth</label>
+          <input type="date" id="dob" required>
+        </div>
+        <div class="field">
+          <label>Loss Period Method</label>
+          <div class="radio-group">
+            <label><input type="radio" name="periodMethod" value="retireAge" checked> To retirement age</label>
+            <label><input type="radio" name="periodMethod" value="worklifeYears"> Fixed worklife years</label>
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field" id="retireAgeField">
+            <label>Retirement Age <span class="hint">(worklife expectancy endpoint)</span></label>
+            <input type="number" id="retireAge" value="67" min="1" max="100">
+          </div>
+          <div class="field hidden" id="worklifeYearsField">
+            <label>Worklife Years from Date of Loss</label>
+            <input type="number" id="worklifeYears" value="20" min="0" max="70" step="0.1">
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Earnings Assumptions</h2>
+        <div class="row2">
+          <div class="field">
+            <label>Base Annual Earnings <span class="hint">(at date of loss, $)</span></label>
+            <input type="number" id="baseEarnings" value="60000" min="0" step="100">
+          </div>
+          <div class="field">
+            <label>Annual Wage Growth Rate (%)</label>
+            <input type="number" id="growthRate" value="3.0" step="0.1">
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label>Fringe Benefit Rate (%) <span class="hint">of gross wages</span></label>
+            <input type="number" id="fringeRate" value="15.0" step="0.1">
+          </div>
+          <div class="field">
+            <label>Discount Rate (%) <span class="hint">for present value of future loss</span></label>
+            <input type="number" id="discountRate" value="4.0" step="0.1">
+          </div>
+        </div>
+        <div class="field">
+          <label>Prejudgment Interest Rate on Past Loss (%) <span class="hint">optional, 0 = nominal sum</span></label>
+          <input type="number" id="interestRate" value="0" step="0.1">
+        </div>
+        <div class="field" id="residualField">
+          <label>Post-Injury Residual Earning Capacity ($/yr) <span class="hint">for partial disability; 0 if totally disabled</span></label>
+          <input type="number" id="residualEarnings" value="0" min="0" step="100">
+        </div>
+      </div>
+
+      <div class="panel" id="wdPanel">
+        <h2>Wrongful Death Adjustments</h2>
+        <div class="field">
+          <label>Personal Consumption Rate (%) <span class="hint">portion decedent would have spent on self</span></label>
+          <input type="number" id="consumptionRate" value="25" step="0.5">
+        </div>
+        <div class="field">
+          <label class="hint" style="font-weight:400;">
+            Applied to gross earnings + fringe each year to isolate the portion that would have benefited survivors/dependents.
+            Typical ranges: 25–30% (no dependents), 15–20% (with dependents/spouse) — adjust per case facts.
+          </label>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="btn-row no-print">
+      <button type="submit" id="calcBtn">Calculate Loss</button>
+      <button type="button" id="printBtn">Print / Save PDF</button>
+      <button type="button" id="resetBtn">Reset</button>
+    </div>
+  </form>
+
+  <div id="results">
+    <div class="summary-cards" id="summaryCards"></div>
+
+    <div class="table-title">Year-by-Year Loss Schedule</div>
+    <div class="table-scroll">
+      <table id="scheduleTable">
+        <thead>
+          <tr>
+            <th>Period</th>
+            <th>Age</th>
+            <th>Gross Earnings</th>
+            <th>Fringe Benefits</th>
+            <th id="deductHeader">Deduction</th>
+            <th>Net Annual Loss</th>
+            <th>Past Portion</th>
+            <th>Future Portion</th>
+            <th>Discount Factor</th>
+            <th>Present Value</th>
+          </tr>
+        </thead>
+        <tbody id="scheduleBody"></tbody>
+      </table>
+    </div>
+
+    <details class="methodology no-print" open>
+      <summary>Methodology &amp; Formulas</summary>
+      <ul>
+        <li><strong>Loss period:</strong> from Date of Loss to Retirement Age (from Date of Birth) or a fixed Worklife Years figure, whichever method is selected.</li>
+        <li><strong>Annual base:</strong> Year <em>i</em> gross earnings = Base Earnings × (1 + growth rate)<sup>i</sup>; total compensation = gross earnings × (1 + fringe rate).</li>
+        <li><strong>Personal Injury deduction:</strong> residual post-injury earning capacity (grown at the same wage growth rate) is subtracted from total compensation.</li>
+        <li><strong>Wrongful Death deduction:</strong> total compensation is reduced by the personal consumption rate to isolate the portion that would have accrued to survivors.</li>
+        <li><strong>Past loss:</strong> the portion of each annual period occurring before the Evaluation Date is summed at nominal value, optionally compounded forward to the Evaluation Date at the prejudgment interest rate.</li>
+        <li><strong>Future loss:</strong> the portion of each annual period occurring after the Evaluation Date is discounted back to the Evaluation Date using the mid-period convention: PV = Amount ÷ (1 + discount rate)<sup>t</sup>, where <em>t</em> is the time from the Evaluation Date to the midpoint of that period.</li>
+        <li><strong>Total Economic Loss</strong> = Past Loss (with interest, if any) + Present Value of Future Loss.</li>
+      </ul>
+    </details>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+
+  // Toggle loss-period method fields
+  document.querySelectorAll('input[name="periodMethod"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const isRetire = $('retireAge').closest ? document.querySelector('input[name="periodMethod"]:checked').value === 'retireAge' : true;
+      const method = document.querySelector('input[name="periodMethod"]:checked').value;
+      $('retireAgeField').classList.toggle('hidden', method !== 'retireAge');
+      $('worklifeYearsField').classList.toggle('hidden', method !== 'worklifeYears');
+    });
+  });
+
+  // Toggle Wrongful Death panel / residual field based on case type
+  function syncCaseType() {
+    const type = document.querySelector('input[name="caseType"]:checked').value;
+    $('wdPanel').classList.toggle('hidden', type !== 'WD');
+    $('residualField').classList.toggle('hidden', type === 'WD');
+  }
+  document.querySelectorAll('input[name="caseType"]').forEach(r => r.addEventListener('change', syncCaseType));
+  syncCaseType();
+
+  // Defaults
+  const today = new Date();
+  $('evalDate').value = today.toISOString().slice(0,10);
+  const dloss = new Date(today); dloss.setFullYear(dloss.getFullYear() - 1);
+  $('dateOfLoss').value = dloss.toISOString().slice(0,10);
+  const dob = new Date(today); dob.setFullYear(dob.getFullYear() - 40);
+  $('dob').value = dob.toISOString().slice(0,10);
+
+  const MS_YEAR = 365.25 * 24 * 3600 * 1000;
+  const yearsBetween = (a, b) => (b - a) / MS_YEAR;
+  const addYears = (d, y) => new Date(d.getTime() + y * MS_YEAR);
+  const fmtMoney = (n) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+  const fmtDate = (d) => d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+  function calculate() {
+    const caseType = document.querySelector('input[name="caseType"]:checked').value;
+    const dateOfLoss = new Date($('dateOfLoss').value + 'T00:00:00');
+    const evalDate = new Date($('evalDate').value + 'T00:00:00');
+    const dob = new Date($('dob').value + 'T00:00:00');
+    const periodMethod = document.querySelector('input[name="periodMethod"]:checked').value;
+
+    const baseEarnings = parseFloat($('baseEarnings').value) || 0;
+    const growthRate = (parseFloat($('growthRate').value) || 0) / 100;
+    const fringeRate = (parseFloat($('fringeRate').value) || 0) / 100;
+    const discountRate = (parseFloat($('discountRate').value) || 0) / 100;
+    const interestRate = (parseFloat($('interestRate').value) || 0) / 100;
+    const residualEarnings = caseType === 'WD' ? 0 : (parseFloat($('residualEarnings').value) || 0);
+    const consumptionRate = caseType === 'WD' ? (parseFloat($('consumptionRate').value) || 0) / 100 : 0;
+
+    let lossPeriodYears;
+    if (periodMethod === 'retireAge') {
+      const retireAge = parseFloat($('retireAge').value) || 67;
+      const ageAtLoss = yearsBetween(dob, dateOfLoss);
+      lossPeriodYears = retireAge - ageAtLoss;
+    } else {
+      lossPeriodYears = parseFloat($('worklifeYears').value) || 0;
+    }
+    lossPeriodYears = Math.max(0, Math.min(lossPeriodYears, 70));
+
+    const endDate = addYears(dateOfLoss, lossPeriodYears);
+    const numFullYears = Math.ceil(lossPeriodYears);
+
+    let pastLossNominal = 0;
+    let futureLossPV = 0;
+    const rows = [];
+
+    for (let i = 0; i < numFullYears; i++) {
+      const periodStart = addYears(dateOfLoss, i);
+      let periodEnd = addYears(dateOfLoss, i + 1);
+      if (periodEnd > endDate) periodEnd = endDate;
+      if (periodStart >= periodEnd) break;
+
+      const periodLenYears = yearsBetween(periodStart, periodEnd);
+
+      const grossEarnings = baseEarnings * Math.pow(1 + growthRate, i);
+      const fringeAmt = grossEarnings * fringeRate;
+      const totalComp = grossEarnings + fringeAmt;
+
+      let deductionAmt = 0;
+      let netAnnualLoss;
+      if (caseType === 'WD') {
+        deductionAmt = totalComp * consumptionRate;
+        netAnnualLoss = totalComp - deductionAmt;
+      } else {
+        deductionAmt = residualEarnings * Math.pow(1 + growthRate, i);
+        netAnnualLoss = Math.max(0, totalComp - deductionAmt);
+      }
+
+      const annualRate = netAnnualLoss; // amount per full year, applies pro-rata for partial period
+      const periodLossTotal = annualRate * periodLenYears;
+
+      let pastPortionYears = 0, futurePortionYears = 0;
+      if (periodEnd <= evalDate) {
+        pastPortionYears = periodLenYears;
+      } else if (periodStart >= evalDate) {
+        futurePortionYears = periodLenYears;
+      } else {
+        pastPortionYears = yearsBetween(periodStart, evalDate);
+        futurePortionYears = yearsBetween(evalDate, periodEnd);
+      }
+
+      const pastAmt = annualRate * pastPortionYears;
+      const futureAmt = annualRate * futurePortionYears;
+
+      let pastAmtWithInterest = pastAmt;
+      if (pastPortionYears > 0 && interestRate > 0) {
+        const pastMid = addYears(periodStart, pastPortionYears / 2);
+        const tFwd = Math.max(0, yearsBetween(pastMid, evalDate));
+        pastAmtWithInterest = pastAmt * Math.pow(1 + interestRate, tFwd);
+      }
+
+      let discountFactor = null;
+      let presentValue = 0;
+      if (futurePortionYears > 0) {
+        const futureStart = periodStart > evalDate ? periodStart : evalDate;
+        const futureMid = addYears(futureStart, futurePortionYears / 2);
+        const t = Math.max(0, yearsBetween(evalDate, futureMid));
+        discountFactor = 1 / Math.pow(1 + discountRate, t);
+        presentValue = futureAmt * discountFactor;
+      }
+
+      pastLossNominal += pastAmtWithInterest;
+      futureLossPV += presentValue;
+
+      const ageAtStart = yearsBetween(dob, periodStart);
+
+      rows.push({
+        label: `${fmtDate(periodStart)} – ${fmtDate(periodEnd)}`,
+        age: ageAtStart.toFixed(1),
+        grossEarnings, fringeAmt, deductionAmt, netAnnualLoss: periodLossTotal,
+        pastAmt: pastPortionYears > 0 ? pastAmtWithInterest : null,
+        futureAmt: futurePortionYears > 0 ? futureAmt : null,
+        discountFactor, presentValue,
+        isPast: futurePortionYears === 0
+      });
+    }
+
+    return {
+      caseType, pastLossNominal, futureLossPV,
+      totalLoss: pastLossNominal + futureLossPV,
+      rows, lossPeriodYears, dateOfLoss, evalDate, endDate
+    };
+  }
+
+  function render(result) {
+    $('deductHeader').textContent = result.caseType === 'WD' ? 'Personal Consumption' : 'Residual Capacity';
+
+    const cards = [
+      { label: 'Past Economic Loss', value: result.pastLossNominal },
+      { label: 'Present Value of Future Loss', value: result.futureLossPV },
+      { label: 'Total Economic Loss', value: result.totalLoss, total: true },
+    ];
+    $('summaryCards').innerHTML = cards.map(c => `
+      <div class="card ${c.total ? 'total' : ''}">
+        <div class="label">${c.label}</div>
+        <div class="value">${fmtMoney(c.value)}</div>
+      </div>
+    `).join('') + `
+      <div class="card">
+        <div class="label">Loss Period</div>
+        <div class="value" style="font-size:1.1rem;">${result.lossPeriodYears.toFixed(1)} yrs</div>
+      </div>`;
+
+    $('scheduleBody').innerHTML = result.rows.map(r => `
+      <tr class="${r.isPast ? 'past-row' : ''}">
+        <td>${r.label} ${r.isPast ? '<span class="badge past">PAST</span>' : (r.pastAmt ? '<span class="badge future">SPLIT</span>' : '<span class="badge future">FUTURE</span>')}</td>
+        <td>${r.age}</td>
+        <td>${fmtMoney(r.grossEarnings)}</td>
+        <td>${fmtMoney(r.fringeAmt)}</td>
+        <td>${fmtMoney(r.deductionAmt)}</td>
+        <td>${fmtMoney(r.netAnnualLoss)}</td>
+        <td>${r.pastAmt !== null ? fmtMoney(r.pastAmt) : '—'}</td>
+        <td>${r.futureAmt !== null ? fmtMoney(r.futureAmt) : '—'}</td>
+        <td>${r.discountFactor !== null ? r.discountFactor.toFixed(4) : '—'}</td>
+        <td>${r.futureAmt !== null ? fmtMoney(r.presentValue) : '—'}</td>
+      </tr>
+    `).join('');
+
+    $('results').style.display = 'block';
+    $('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  $('inputForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const result = calculate();
+    render(result);
+  });
+
+  $('printBtn').addEventListener('click', () => window.print());
+
+  $('resetBtn').addEventListener('click', () => {
+    $('inputForm').reset();
+    $('results').style.display = 'none';
+    setTimeout(() => {
+      $('evalDate').value = today.toISOString().slice(0,10);
+      $('dateOfLoss').value = dloss.toISOString().slice(0,10);
+      $('dob').value = dob.toISOString().slice(0,10);
+      syncCaseType();
+    }, 0);
+  });
+})();
+</script>
+
+</body>
+</html>
