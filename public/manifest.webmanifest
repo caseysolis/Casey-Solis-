@@ -1,0 +1,1 @@
+{ "name": "ACN Portfolio Simulator", "short_name": "ACN Simulator", "start_url": "/#/myacn/acn/today", "display": "standalone", "background_color": "#f6f1e6", "theme_color": "#0f1f3a", "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }] }

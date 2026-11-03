@@ -13,15 +13,22 @@ export function toCSV(header, rows) {
 const num = (v, d = 2) => (v === null || v === undefined || !Number.isFinite(v) ? '' : v.toFixed(d));
 
 /** Holdings export: one row per combined ticker with price source and freshness. */
-export function holdingsCSV({ scenario, strategy, basis, asOf, valuation, currency = 'USD', runCreatedAt }) {
+export function holdingsCSV({ scenario, strategy, basis, asOf, valuation, currency = 'USD', runCreatedAt, tr = null }) {
   const header = ['scenario', 'strategy', 'return_basis', 'as_of', 'run_started', 'symbol', 'sleeves', 'weight_pct', 'units', 'anchor_price', 'anchor_time', 'latest_price', 'price_time', 'price_source', 'price_status', 'opening_value', 'market_value', 'pnl', 'currency'];
+  if (basis === 'total') header.push('total_return_value', 'total_return_through', 'income_source', 'income_convention');
+  const trCols = (s) => {
+    if (basis !== 'total') return [];
+    const b = tr && tr.bySymbol ? tr.bySymbol[s] : null;
+    return [b && b.value !== undefined ? num(b.value) : 'unavailable', tr ? tr.through || '' : '', b ? b.source || '' : '', 'gross; verified distributions reinvested at ex-date close; excludes fees and taxes'];
+  };
   const rows = valuation.holdings.map((h) => [
     scenario, strategy, basis, asOf, runCreatedAt, h.symbol, h.sleeves.join('+'), num(h.weight * 100, 6),
     h.units === null ? '' : h.units.toFixed(8), h.anchor ? num(h.anchor.price, 6) : '', h.anchor ? h.anchor.marketTs : '',
     num(h.mark, 6), h.quote ? h.quote.marketTs || '' : '', h.quote ? h.quote.source || '' : '', h.quote ? h.quote.status || '' : 'unavailable',
-    num(h.openingDollars), num(h.value), num(h.pnl), currency,
+    num(h.openingDollars), num(h.value), num(h.pnl), currency, ...trCols(h.symbol),
   ]);
-  rows.push([scenario, strategy, basis, asOf, runCreatedAt, valuation.complete ? 'TOTAL' : `PRICED SUBTOTAL (${(valuation.coverage * 100).toFixed(2)}% coverage)`, '', '', '', '', '', '', '', '', '', num(valuation.pricedCost), num(valuation.pricedValue), valuation.complete ? num(valuation.pnl) : '', currency]);
+  const totalTr = basis === 'total' ? [tr && tr.available ? num(tr.value) : 'unavailable', tr ? tr.through || '' : '', '', 'gross; verified distributions reinvested at ex-date close; excludes fees and taxes'] : [];
+  rows.push([scenario, strategy, basis, asOf, runCreatedAt, valuation.complete ? 'TOTAL' : `PRICED SUBTOTAL (${(valuation.coverage * 100).toFixed(2)}% coverage)`, '', '', '', '', '', '', '', '', '', num(valuation.pricedCost), num(valuation.pricedValue), valuation.complete ? num(valuation.pnl) : '', currency, ...totalTr]);
   return toCSV(header, rows);
 }
 

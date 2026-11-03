@@ -74,3 +74,12 @@ test('Earlier common verified date offers a dated total-return window', () => {
   assert.equal(w.through, '2026-11-06');
   assert.ok(Math.abs(w.totalReturn - 0.04) < 1e-12);
 });
+
+test('anchor dates use the New York market date, not the UTC date', () => {
+  // 02:30Z on Nov 3 is still Nov 2 in New York; a Nov 3 ex-date must count.
+  const run = anchorRun(createRun({ strategy: 'acn', p: 1, mixKey: 'm20', capital: 1000, createdAt: '2026-11-03T02:30:00.000Z' }), { ACN: q('ACN', 100, '2026-11-03T02:30:00.000Z') });
+  const histories = { ACN: { verifiedThrough: '2026-11-04', source: 't', events: [{ id: 'x', exDate: '2026-11-03', amount: 2, exPrice: 98 }] } };
+  const tr = runTotalReturn({ run, marks: { ACN: 98 }, histories, throughDate: '2026-11-04' });
+  assert.ok(Math.abs(tr.totalReturn) < 1e-12);
+});
+

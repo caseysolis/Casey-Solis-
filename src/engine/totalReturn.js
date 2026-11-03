@@ -4,7 +4,11 @@
 // Hypothetical units live only in this series; the price-only share ledger is
 // untouched. Events are de-duplicated by id so reprocessing cannot add value.
 
-const day = (s) => String(s).slice(0, 10);
+import { nyDate } from './money.js';
+
+// Calendar dates are U.S. market (America/New_York) dates. Plain YYYY-MM-DD
+// strings are taken as-is; full timestamps are converted, never sliced as UTC.
+const day = (s) => (/^\d{4}-\d{2}-\d{2}$/.test(String(s)) ? String(s) : nyDate(s));
 
 /**
  * history: { symbol, verifiedThrough: 'YYYY-MM-DD'|null, source, events: [{ id, exDate, amount, exPrice }] }

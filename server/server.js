@@ -119,7 +119,7 @@ export function createServer(opts = {}) {
     if (p === '/api/records' && m === 'GET') {
       return json(res, 200, { records: store.list(user.id) });
     }
-    let match = p.match(/^\/api\/records\/by-key\/([a-z:]+)$/);
+    let match = p.match(/^\/api\/records\/by-key\/([\w:%-]+)$/);
     if (match && m === 'PUT') {
       const body = await readBody(req);
       const r = store.put(user.id, decodeURIComponent(match[1]), body);
